@@ -1,6 +1,8 @@
 using System.Text;
 using HrInternalTool.Api;
+using HrInternalTool.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -84,6 +86,12 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddApiDI(builder.Configuration);
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("MinimumAge", policy =>
+        policy.Requirements.Add(new MinimumAgeAuthorizationReq(18))); // Example: minimum age of 18  
+});
+builder.Services.AddSingleton<IAuthorizationHandler, MinimumAgeAuthorizationReqHandler>();
 
 var app = builder.Build();
 
@@ -96,6 +104,7 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 //app.UseMiddleware<ExceptionHandlerMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();
